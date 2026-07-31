@@ -18,6 +18,36 @@ export type ReportContent = {
   neededFromCustomer: string[];
   disclaimer?: string;
   theme?: { accent?: string; tone?: "neutral" | "warm" | "technical" };
+  // Editorial presentation layer — every field is optional so old published
+  // reports continue to render through the fallback layout.
+  highlights?: string[];
+  situation?: { headline: string; body: string };
+  comparison?: { before: string[]; after: string[] };
+  valueFlow?: { stage: string; description: string }[];
+  conceptPreviews?: {
+    id: string;
+    name: string;
+    artDirection: string;
+    blurb: string;
+    /** Inline SVG/CSS body for the concept preview — no scripts, no fetches. */
+    bodyHtml: string;
+    /** Inline CSS for the concept preview. */
+    bodyCss: string;
+  }[];
+  pricingOverview?: {
+    tiers: {
+      id: string;
+      name: string;
+      tagline: string;
+      recommended: boolean;
+      website: string;
+      receptionist: string;
+      extraMinutes: string;
+      maintenance?: string;
+      notes?: string;
+    }[];
+    vatNote: string;
+  };
 };
 
 export type ResolvedReport = {

@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --experimental-strip-types tests/*.test.ts"
+    "test": "node --test --experimental-strip-types tests/report.test.ts tests/visual.test.ts tests/reportRender.test.ts && npx --yes tsx --test tests/nextReport.test.ts"
   },
   "dependencies": {
     "convex": "^1.42.3",
