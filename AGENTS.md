@@ -14,3 +14,4 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - `personal-report-page-agent` owns report copy and visual direction. Infrastructure code must expose safe structured content and theme fields, not arbitrary executable HTML or JavaScript.
 - Real SMS and email delivery remains disabled until separately approved.
 - Secrets belong in Convex/VPS environment variables and must never be committed.
+- Pushes to `master` are verified and deployed to the production Convex project by `.github/workflows/deploy-convex.yml`. The workflow must pass the locked install, type-check, functional tests, lint and production build before deployment; `CONVEX_DEPLOY_KEY` remains a GitHub Actions secret.

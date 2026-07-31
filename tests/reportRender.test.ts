@@ -5,6 +5,7 @@
 
 import assert from "node:assert/strict";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { renderReportHtml, renderNotFoundHtml, PUBLIC_SITE } from "../convex/reportRender.ts";
 import type { ReportContent } from "../convex/reportRender.ts";
@@ -222,7 +223,7 @@ test("Convex renderer sets noindex and security headers are documented", async (
   // header keys are set in http.ts so security invariants are not just inline.
   const { readFileSync } = await import("node:fs");
   const http = readFileSync(
-    new URL("../convex/http.ts", import.meta.url).pathname,
+    fileURLToPath(new URL("../convex/http.ts", import.meta.url)),
     "utf8",
   );
   for (const header of [
