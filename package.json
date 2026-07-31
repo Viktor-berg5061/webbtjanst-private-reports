@@ -2,13 +2,17 @@
   "name": "webbtjanst-private-reports",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types tests/*.test.ts"
   },
   "dependencies": {
+    "convex": "^1.42.3",
     "next": "16.2.12",
     "react": "19.2.4",
     "react-dom": "19.2.4"
