@@ -153,7 +153,7 @@ function renderConcept(concept: ConceptPreview, index: number): string {
  * section the :target, which expands to a fullscreen overlay via CSS. No JS, no
  * new routes. The same data is reused — only the layout differs from the teaser.
  */
-function renderConceptFullscreen(concept: ConceptPreview, _index: number): string {
+function renderConceptFullscreen(concept: ConceptPreview): string {
   const targetId = `cn-${escapeId(concept.id)}`;
   const accent = safeColor(concept.palette.accent, "#8c5a1e");
   const onAccent = safeColor(concept.palette.onAccent, "#ffffff");
@@ -175,7 +175,7 @@ function renderConceptFullscreen(concept: ConceptPreview, _index: number): strin
 
 function renderConcepts(content: PersonalReportV2Content): string {
   const teasers = content.conceptPreviews.map(renderConcept).join("");
-  const fullscreens = content.conceptPreviews.map(renderConceptFullscreen).join("");
+  const fullscreens = content.conceptPreviews.map((c) => renderConceptFullscreen(c)).join("");
   return `<section class="rt-section" aria-labelledby="rt-concepts"><header class="rt-section-head" id="concepts"><div><p class="rt-section-eyebrow">Koncept</p><h2 class="rt-section-title" id="rt-concepts">Tre öppningsbara riktningar</h2></div><p class="rt-section-aside">Tryck på en ruta för att öppna konceptet som hel, scrollbar sajt.</p></header><div class="rt-concepts">${teasers}</div><div class="rt-concept-fullstage">${fullscreens}</div></section>`;
 }
 
