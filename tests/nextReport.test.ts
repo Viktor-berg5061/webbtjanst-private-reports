@@ -23,8 +23,9 @@ test("Next renderer uses the canonical v2 content and keeps industries distinct"
 
 test("Next renderer renders exactly three interactive concepts and flexible offer fields", () => {
   const html = render("bakery");
-  assert.equal((html.match(/<details class="rt-concept"/g) ?? []).length, 3);
-  assert.equal((html.match(/<summary class="rt-concept-summary"/g) ?? []).length, 3);
+  // After the interactive refactor, concept cards are clickable <a> links that open a fullscreen overlay via :target.
+  assert.equal((html.match(/<a class="rt-concept"/g) ?? []).length, 3);
+  assert.equal((html.match(/<div class="rt-concept-summary"/g) ?? []).length, 3);
   assert.ok(html.includes("<details class=\"rt-offer-details\""));
   assert.ok(html.includes("14 000 SEK"));
   assert.ok(html.includes("900 SEK / månad"));

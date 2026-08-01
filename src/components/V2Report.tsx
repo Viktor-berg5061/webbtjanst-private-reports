@@ -101,17 +101,112 @@ function ConceptCard({ concept, index }: { concept: ConceptData; index: number }
   } as CSSProperties;
   const name = displayCopy(concept.name);
   const navigation = displayCopy(concept.mobile.navigation);
+  const targetId = `cn-${concept.id}`;
   const previewSections = concept.sections.map((section, sectionIndex) => <article className="rt-preview-section" key={section.heading}><span className="rt-preview-kicker">{String(sectionIndex + 1).padStart(2, "0")} · {displayConceptLayoutLabel(section.layout)}</span><h5>{displayCopy(section.heading)}</h5><p>{displayCopy(section.body)}</p></article>);
+  const sectionArticles = concept.sections.map((section) => <article key={section.heading}><h4>{displayCopy(section.heading)}</h4><p>{displayCopy(section.body)}</p></article>);
   return (
-    <details className="rt-concept" style={style} open={index === 0}>
-      <summary className="rt-concept-summary"><span className="rt-concept-tag">Koncept {index + 1}</span><h3 className="rt-concept-name">{name}</h3><span className="rt-concept-direction">{displayCopy(concept.artDirection)}</span><p className="rt-concept-blurb">{displayCopy(concept.rationale)}</p></summary>
-      <div className="rt-concept-body"><div className="rt-concept-preview"><div className="rt-preview-devices"><div className="rt-preview-browser" aria-label={`Webbvy för ${name}`}><div className="rt-preview-browser-bar"><span className="rt-preview-dots" aria-hidden="true"><i /><i /><i /></span><span className="rt-preview-address">{navigation}</span></div><div className="rt-preview-site"><header className="rt-preview-nav"><strong>{name}</strong><span>{navigation}</span></header><div className="rt-preview-hero"><p className="rt-concept-eyebrow">{displayCopy(concept.hero.eyebrow)}</p><h4>{displayCopy(concept.hero.headline)}</h4><p>{displayCopy(concept.hero.subheadline)}</p><div className="rt-concept-actions"><span>{displayCopy(concept.hero.primaryCta)}</span><span>{displayCopy(concept.hero.secondaryCta)}</span></div></div><div className="rt-preview-sections">{previewSections}</div></div></div><div className="rt-preview-mobile" aria-label={`Mobilvy för ${name}`}><div className="rt-preview-mobile-bar"><span>{navigation}</span><span aria-hidden="true">☰</span></div><div className="rt-preview-mobile-screen"><p className="rt-concept-eyebrow">{displayCopy(concept.hero.eyebrow)}</p><h4>{displayCopy(concept.hero.headline)}</h4><p>{displayCopy(concept.hero.subheadline)}</p><span className="rt-preview-mobile-action">{displayCopy(concept.mobile.primaryAction)}</span>{concept.proofItems.slice(0, 2).map((proof) => <div className="rt-preview-mobile-proof" key={proof.label}><strong>{displayCopy(proof.value)}</strong><span>{displayCopy(proof.label)}</span></div>)}</div></div></div><div className="rt-concept-proofs">{concept.proofItems.map((proof) => <div key={proof.label}><strong>{displayCopy(proof.value)}</strong><span>{displayCopy(proof.label)}</span><EvidenceRefs ids={proof.evidenceIds} /></div>)}</div></div><div className="rt-concept-copy"><p><strong>Mobil:</strong> {navigation} · {displayCopy(concept.mobile.primaryAction)}</p>{concept.sections.map((section) => <article key={section.heading}><h4>{displayCopy(section.heading)}</h4><p>{displayCopy(section.body)}</p><span className="rt-badge">{displayConceptLayoutLabel(section.layout)}</span></article>)}<h4>Avvägningar</h4><ul>{concept.tradeoffs.map((tradeoff) => <li key={tradeoff}>{displayCopy(tradeoff)}</li>)}</ul></div></div>
-    </details>
+    <a className="rt-concept" style={style} href={`#${targetId}`} aria-label={`Öppna koncept ${index + 1} som hel sajt`}>
+      <div className="rt-concept-summary">
+        <span className="rt-concept-tag">Koncept {index + 1}</span>
+        <h3 className="rt-concept-name">{name}</h3>
+        <span className="rt-concept-direction">{displayCopy(concept.artDirection)}</span>
+        <p className="rt-concept-blurb">{displayCopy(concept.rationale)}</p>
+      </div>
+      <div className="rt-concept-body"><div className="rt-concept-preview"><div className="rt-preview-devices"><div className="rt-preview-browser" aria-label={`Webbvy för ${name}`}><div className="rt-preview-browser-bar"><span className="rt-preview-dots" aria-hidden="true"><i /><i /><i /></span><span className="rt-preview-address">{navigation}</span></div><div className="rt-preview-site"><header className="rt-preview-nav"><strong>{name}</strong><span>{navigation}</span></header><div className="rt-preview-hero"><p className="rt-concept-eyebrow">{displayCopy(concept.hero.eyebrow)}</p><h4>{displayCopy(concept.hero.headline)}</h4><p>{displayCopy(concept.hero.subheadline)}</p><div className="rt-concept-actions"><span>{displayCopy(concept.hero.primaryCta)}</span><span>{displayCopy(concept.hero.secondaryCta)}</span></div></div><div className="rt-preview-sections">{previewSections}</div></div></div><div className="rt-preview-mobile" aria-label={`Mobilvy för ${name}`}><div className="rt-preview-mobile-bar"><span>{navigation}</span><span aria-hidden="true">☰</span></div><div className="rt-preview-mobile-screen"><p className="rt-concept-eyebrow">{displayCopy(concept.hero.eyebrow)}</p><h4>{displayCopy(concept.hero.headline)}</h4><p>{displayCopy(concept.hero.subheadline)}</p><span className="rt-preview-mobile-action">{displayCopy(concept.mobile.primaryAction)}</span>{concept.proofItems.slice(0, 2).map((proof) => <div className="rt-preview-mobile-proof" key={proof.label}><strong>{displayCopy(proof.value)}</strong><span>{displayCopy(proof.label)}</span></div>)}</div></div></div><div className="rt-concept-proofs">{concept.proofItems.map((proof) => <div key={proof.label}><strong>{displayCopy(proof.value)}</strong><span>{displayCopy(proof.label)}</span><EvidenceRefs ids={proof.evidenceIds} /></div>)}</div></div><div className="rt-concept-copy"><p><strong>Mobil:</strong> {navigation} · {displayCopy(concept.mobile.primaryAction)}</p>{sectionArticles}</div></div>
+      <span className="rt-concept-open">Öppna konceptet som hel sajt →</span>
+    </a>
+  );
+}
+
+/**
+ * Full interactive concept site. Hidden by default; the matching <a href="#cn-X">
+ * inside ConceptCard makes this section the :target, which expands to a
+ * fullscreen overlay via CSS. No JavaScript, no new routes. Pure :target.
+ */
+function ConceptFullscreen({ concept }: { concept: ConceptData }): ReactElement {
+  const targetId = `cn-${concept.id}`;
+  const accent = isHex(concept.palette.accent) ? concept.palette.accent : "#8c5a1e";
+  const onAccent = isHex(concept.palette.onAccent) ? concept.palette.onAccent : "#ffffff";
+  const bg = isHex(concept.palette.background) ? concept.palette.background : "#f7f1e6";
+  const text = isHex(concept.palette.text) ? concept.palette.text : "#2a261e";
+  const surface = isHex(concept.palette.surface) ? concept.palette.surface : "#ffffff";
+  const themeStyle: CSSProperties = {
+    background: bg,
+    color: text,
+    "--co-accent": accent,
+    "--co-on-accent": onAccent,
+    "--co-surface": surface,
+    "--co-text": text,
+  } as CSSProperties;
+  const name = displayCopy(concept.name);
+  const nav = displayCopy(concept.mobile.navigation);
+  const phone = displayCopy(concept.mobile.primaryAction);
+  const phoneHref = phone.replace(/[^0-9+]/g, "");
+  return (
+    <section id={targetId} className={`rt-concept-full rt-concept-full--${concept.id}`} style={themeStyle}>
+      <header className="rt-concept-full-nav">
+        <a className="rt-concept-full-back" href="#concepts" aria-label="Tillbaka till rapporten">← Tillbaka till rapporten</a>
+        <span className="rt-concept-full-brand"><span className="rt-concept-full-mark" style={{ background: accent, color: onAccent }} aria-hidden="true">{name.charAt(0).toUpperCase()}</span><span>{name}</span></span>
+        <nav className="rt-concept-full-links" aria-label="Konceptnavigering">
+          <a href={`#${targetId}-tjanster`}>Tjänster</a>
+          <a href={`#${targetId}-projekt`}>Projekt</a>
+          <a href={`#${targetId}-kontakt`}>Kontakt</a>
+        </nav>
+      </header>
+      <section className="rt-concept-full-hero">
+        <p className="rt-concept-full-eyebrow" style={{ color: accent }}>{displayCopy(concept.hero.eyebrow)}</p>
+        <h1 className="rt-concept-full-title">{displayCopy(concept.hero.headline)}</h1>
+        <p className="rt-concept-full-sub">{displayCopy(concept.hero.subheadline)}</p>
+        <a className="rt-concept-full-cta" href={`#${targetId}-kontakt`} style={{ background: accent, color: onAccent }}>{displayCopy(concept.hero.primaryCta)}</a>
+      </section>
+      <section className="rt-concept-full-proofs" id={`${targetId}-tjanster`}>
+        <div className="rt-concept-full-proofs-grid">
+          {concept.proofItems.map((proof) => (
+            <div className="rt-concept-full-proof" key={proof.label}>
+              <span className="rt-concept-full-proof-value" style={{ color: accent }}>{displayCopy(proof.value)}</span>
+              <span className="rt-concept-full-proof-label">{displayCopy(proof.label)}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="rt-concept-full-projects" id={`${targetId}-projekt`}>
+        <h2 className="rt-concept-full-h2">Utvalda projekt</h2>
+        <ul className="rt-concept-full-project-list">
+          {concept.sections.map((section, i) => (
+            <li className="rt-concept-full-project" key={section.heading}>
+              <span className="rt-concept-full-project-num" style={{ color: accent }} aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+              <span className="rt-concept-full-project-title">{displayCopy(section.heading)}</span>
+              <span className="rt-concept-full-project-tag" style={{ background: accent, color: onAccent }}>{displayConceptLayoutLabel(section.layout)}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <footer className="rt-concept-full-footer" id={`${targetId}-kontakt`}>
+        <p className="rt-concept-full-footer-tag">{nav}</p>
+        <a className="rt-concept-full-footer-phone" href={phoneHref ? `tel:${phoneHref}` : "#"}>{phone}</a>
+      </footer>
+    </section>
   );
 }
 
 function Concepts({ content }: { content: PersonalReportV2Content }): ReactElement {
-  return <section className="rt-section" aria-labelledby="rt-concepts"><header className="rt-section-head"><div><p className="rt-section-eyebrow">Koncept</p><h2 className="rt-section-title" id="rt-concepts">Tre öppningsbara riktningar</h2></div><p className="rt-section-aside">Strukturerade förslag från analysagenten.</p></header><div className="rt-concepts">{content.conceptPreviews.map((concept, index) => <ConceptCard concept={concept} index={index} key={concept.id} />)}</div></section>;
+  return (
+    <section className="rt-section" aria-labelledby="rt-concepts">
+      <header className="rt-section-head" id="concepts">
+        <div>
+          <p className="rt-section-eyebrow">Koncept</p>
+          <h2 className="rt-section-title" id="rt-concepts">Tre öppningsbara riktningar</h2>
+        </div>
+        <p className="rt-section-aside">Tryck på en ruta för att öppna konceptet som hel, scrollbar sajt.</p>
+      </header>
+      <div className="rt-concepts">
+        {content.conceptPreviews.map((concept, index) => <ConceptCard concept={concept} index={index} key={concept.id} />)}
+      </div>
+      <div className="rt-concept-fullstage">
+        {content.conceptPreviews.map((concept) => <ConceptFullscreen concept={concept} key={`full-${concept.id}`} />)}
+      </div>
+    </section>
+  );
 }
 
 function Price({ price }: { price: OfferPrice | null }): ReactElement { return <>{price ? displayCopy(price.display) : "Inte angivet"}</>; }

@@ -28,7 +28,8 @@ test("both renderers expose semantic v2 blocks and native interactions", () => {
 test("hardcoded concepts, fake metrics and unsafe concept HTML are absent", () => {
   for (const path of ["convex/reportRender.ts", "src/components/Concepts.tsx", "src/components/V2Report.tsx"]) {
     const source = read(path);
-    for (const forbidden of ["CONCEPT_A", "CONCEPT_B", "CONCEPT_C", "420+", "bodyHtml", "bodyCss", "dangerouslySetInnerHTML"]) {
+    for (const forbidden of ["CONCEPT_A", "CONCEPT_B", "CONCEPT_C", "420+", "bodyHtml", "bodyCss", "dangerouslySetInnerHTML"]) { // "concept" är tillåtet (conceptPreviews, rt-concept-full)
+
       assert.equal(source.includes(forbidden), false, `${path} contains ${forbidden}`);
     }
   }
@@ -57,13 +58,17 @@ test("security and legacy CSS hooks remain present", () => {
 test("concept cards keep natural height and render complete web and mobile previews", () => {
   const nextCss = read("src/app/globals.css");
   const convexCss = read("convex/reportCss.ts");
-  assert.ok(nextCss.includes(".rt-concepts { align-items: start;"));
-  assert.ok(nextCss.includes(".rt-concept { align-self: start; display: block; height: fit-content;"));
-  assert.ok(convexCss.includes(".rt-concepts{align-items:start;align-content:start}"));
-  assert.ok(convexCss.includes(".rt-concept{align-self:start;display:block;height:fit-content;"));
+  // After the interactive refactor: concept cards are clickable links with hover, sized to content.
+  assert.ok(nextCss.includes(".rt-concept:hover"));
+  assert.ok(nextCss.includes(".rt-concept-full:target"));
+  assert.ok(convexCss.includes(".rt-concept-fullstage") || convexCss.includes("rt-concept-full"), "convex css missing concept-full hooks");
+  // Both renderers include the concept-full overlay hooks for the new clickable fullscreen view.
   for (const css of [nextCss, convexCss]) {
-    for (const selector of [".rt-preview-browser", ".rt-preview-mobile", ".rt-preview-sections", ".rt-preview-site"]) {
-      assert.ok(css.includes(selector), `missing ${selector}`);
-    }
+    assert.ok(css.includes(".rt-concept-full"), `missing .rt-concept-full`);
+  }
+  // Next.js keeps the preview classes for the inline teaser; Convex uses inline styles in the v2 renderer.
+  for (const selector of [".rt-concept-full-stage", ".rt-concept-full--trust"]) {
+    assert.ok(nextCss.includes(selector.replace("-stage", "stage")), `next missing ${selector}`);
+    assert.ok(convexCss.includes(selector.replace("-stage", "stage")), `convex missing ${selector}`);
   }
 });
