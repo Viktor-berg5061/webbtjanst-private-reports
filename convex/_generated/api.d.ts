@@ -9,6 +9,8 @@
  */
 
 import type * as http from "../http.js";
+import type * as reportCss from "../reportCss.js";
+import type * as reportRender from "../reportRender.js";
 import type * as reports from "../reports.js";
 
 import type {
@@ -19,6 +21,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   http: typeof http;
+  reportCss: typeof reportCss;
+  reportRender: typeof reportRender;
   reports: typeof reports;
 }>;
 

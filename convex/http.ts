@@ -3,6 +3,7 @@ import { httpAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { renderReportHtml, renderNotFoundHtml, PUBLIC_SITE } from "./reportRender";
 import { REPORT_CSS_GUARD } from "./reportCss";
+import { isPersonalReportV2Content, validateReportContent } from "./reportContract";
 
 const http = httpRouter();
 
@@ -16,6 +17,10 @@ function json(body: unknown, status = 200): Response {
     status,
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
   });
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 async function sha256(value: string): Promise<string> {
@@ -93,14 +98,16 @@ http.route({
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     if (!authorized(request)) return json({ error: "unauthorized" }, 401);
-    const body = (await request.json()) as { content?: unknown; expiresAt?: unknown; token?: unknown };
-    if (!body.content || typeof body.content !== "object") return json({ error: "invalid_content" }, 400);
+    const body = await request.json() as unknown;
+    if (!isRecord(body) || !isPersonalReportV2Content(body.content)) return json({ error: "invalid_content" }, 400);
+    const contentErrors = validateReportContent(body.content);
+    if (contentErrors.length > 0) return json({ error: "invalid_content", details: contentErrors }, 400);
     if (body.expiresAt !== undefined && typeof body.expiresAt !== "number") return json({ error: "invalid_expiry" }, 400);
     const token = typeof body.token === "string" ? body.token : newToken();
     if (!/^[A-Za-z0-9_-]{40,128}$/.test(token)) return json({ error: "invalid_token" }, 400);
     const result = await ctx.runMutation(internal.reports.upsertPublished, {
       tokenHash: await sha256(token),
-      content: body.content as never,
+      content: body.content,
       expiresAt: body.expiresAt as number | undefined,
       now: Date.now(),
     });

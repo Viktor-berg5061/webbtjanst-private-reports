@@ -6,6 +6,7 @@ type Props = {
   summary: string;
   website: string;
   receptionist: string;
+  pricing?: string;
   websiteBullets?: string[];
   receptionistBullets?: string[];
 };
@@ -15,7 +16,7 @@ type Props = {
  * large feature blocks (webbplats, AI-receptionist) on desktop. Each feature
  * block has its own icon, headline and a short bullet list (always optional).
  */
-export function Recommendation({ summary, website, receptionist, websiteBullets, receptionistBullets }: Props): ReactElement {
+export function Recommendation({ summary, website, receptionist, pricing, websiteBullets, receptionistBullets }: Props): ReactElement {
   return (
     <div className="rt-card" style={{ padding: 0 }}>
       <div style={{ padding: "clamp(24px, 4vw, 36px)" }}>
@@ -39,6 +40,15 @@ export function Recommendation({ summary, website, receptionist, websiteBullets,
             </ul>
           ) : null}
         </article>
+        {pricing ? (
+          <article className="rt-feature">
+            <span className="rt-feature-icon" aria-hidden={true}>
+              <IconCheck size={22} />
+            </span>
+            <h3>Prisbild</h3>
+            <p>{pricing}</p>
+          </article>
+        ) : null}
         <article className="rt-feature">
           <span className="rt-feature-icon" aria-hidden={true}>
             <IconPhone size={22} />

@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
-import { reportContentValidator } from "./schema";
+import { reportContentValidator, validateReportContent } from "./reportContract";
 
 export const resolveByTokenHash = internalQuery({
   args: { tokenHash: v.string(), now: v.number() },
@@ -27,6 +27,10 @@ export const upsertPublished = internalMutation({
   },
   returns: v.object({ version: v.number() }),
   handler: async (ctx, args) => {
+    const contentErrors = validateReportContent(args.content);
+    if (contentErrors.length > 0) {
+      throw new Error(`invalid report content: ${contentErrors.join("; ")}`);
+    }
     const existing = await ctx.db.query("reports")
       .withIndex("by_token_hash", (q) => q.eq("tokenHash", args.tokenHash)).unique();
     if (existing) {
