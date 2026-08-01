@@ -48,3 +48,10 @@ test("richness, distinct concepts and offer totals are fail-closed", () => {
   wrongTotal.recommendedOffer.oneTimeTotal.amount += 1;
   assert.ok(validateReportContent(wrongTotal).some((error) => error.includes("component total")));
 });
+
+test("unsupported v2 fields are rejected before Convex mutation", () => {
+  const invalid = structuredClone(makeV2Report("plumbing"));
+  (invalid.visualizations[0] as Record<string, unknown>).id = "model-added-id";
+  assert.ok(validateReportContent(invalid).some((error) => error.includes("unsupported field: id")));
+  assert.equal(isPersonalReportV2Content(invalid), false);
+});

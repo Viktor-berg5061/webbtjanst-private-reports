@@ -388,6 +388,13 @@ function add(errors: string[], condition: boolean, message: string): void {
   if (!condition) errors.push(message);
 }
 
+function rejectUnknownKeys(value: RecordValue, allowed: readonly string[], path: string, errors: string[]): void {
+  const allowedSet = new Set(allowed);
+  for (const key of Object.keys(value)) {
+    if (!allowedSet.has(key)) errors.push(`${path} contains unsupported field: ${key}`);
+  }
+}
+
 function validateEvidenceRefs(value: unknown, evidenceIds: Set<string>, errors: string[], path: string): void {
   add(errors, stringArray(value), `${path} must contain non-empty evidence IDs`);
   if (Array.isArray(value)) {
@@ -449,6 +456,11 @@ export function validateReportContent(value: unknown): string[] {
   if (!isRecord(value)) return ["content must be an object"];
   if (value.schemaVersion !== 2) return [];
   const errors: string[] = [];
+  rejectUnknownKeys(value, [
+    "kind", "schemaVersion", "companyProfile", "evidenceLedger", "currentSituation", "opportunities",
+    "visualizations", "customerJourney", "conceptPreviews", "recommendedOffer", "nextSteps",
+    "neededFromCustomer", "disclaimer", "theme",
+  ], "content", errors);
   add(errors, value.kind === "personal_report_v2", "kind must be personal_report_v2");
   const company = value.companyProfile;
   if (!isRecord(company)) errors.push("companyProfile is required");
@@ -495,6 +507,7 @@ export function validateReportContent(value: unknown): string[] {
   else value.visualizations.forEach((visualization, index) => {
     if (!isRecord(visualization)) errors.push(`visualizations[${index}] must be an object`);
     else {
+      rejectUnknownKeys(visualization, ["type", "title", "description", "evidenceIds", "data"], `visualizations[${index}]`, errors);
       for (const field of ["type", "title", "description"]) add(errors, nonEmpty(visualization[field]), `visualizations[${index}].${field} is required`);
       add(errors, ["comparison", "bar", "journey", "funnel"].includes(String(visualization.type)), `visualizations[${index}].type is invalid`);
       validateEvidenceRefs(visualization.evidenceIds, evidenceIds, errors, `visualizations[${index}].evidenceIds`);
@@ -502,6 +515,7 @@ export function validateReportContent(value: unknown): string[] {
       if (Array.isArray(visualization.data)) visualization.data.forEach((datum, datumIndex) => {
         if (!isRecord(datum)) errors.push(`visualizations[${index}].data[${datumIndex}] must be an object`);
         else {
+          rejectUnknownKeys(datum, ["label", "value", "displayValue", "kind"], `visualizations[${index}].data[${datumIndex}]`, errors);
           for (const field of ["label", "displayValue", "kind"]) add(errors, nonEmpty(datum[field]), `visualizations[${index}].data[${datumIndex}].${field} is required`);
           if (datum.value !== undefined) add(errors, typeof datum.value === "number" && Number.isFinite(datum.value), `visualizations[${index}].data[${datumIndex}].value must be numeric`);
           add(errors, [...EVIDENCE_CLASSIFICATIONS, "qualitative"].includes(String(datum.kind)), `visualizations[${index}].data[${datumIndex}].kind is invalid`);
