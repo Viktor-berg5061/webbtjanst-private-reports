@@ -153,7 +153,7 @@ function renderConcept(concept: ConceptPreview, index: number): string {
  * section the :target, which expands to a fullscreen overlay via CSS. No JS, no
  * new routes. The same data is reused — only the layout differs from the teaser.
  */
-function renderConceptFullscreen(concept: ConceptPreview, index: number): string {
+function renderConceptFullscreen(concept: ConceptPreview, _index: number): string {
   const targetId = `cn-${escapeId(concept.id)}`;
   const accent = safeColor(concept.palette.accent, "#8c5a1e");
   const onAccent = safeColor(concept.palette.onAccent, "#ffffff");
