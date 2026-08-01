@@ -33,6 +33,24 @@ test("Next renderer renders exactly three interactive concepts and flexible offe
   assert.equal(/dangerouslySetInnerHTML/.test(html), false);
 });
 
+test("Next display layer hides internal terms and keeps the agent preview data-driven", () => {
+  const report = makeV2Report("bakery");
+  report.companyProfile.industry = "unknown";
+  report.recommendedOffer.components[0].service = "webbplats_och_setup";
+  report.recommendedOffer.optionalAddOns[0].service = "ai_receptionist";
+  report.recommendedOffer.rationale = "Bygger på offer-claim-contracten och handoffens rekommendation.";
+
+  const html = renderToStaticMarkup(createElement(V2Report, { content: report }));
+  assert.ok(html.includes("Ej verifierat i underlaget"));
+  assert.ok(html.includes("Webbplats och uppstart"));
+  assert.ok(html.includes("AI-receptionist"));
+  assert.equal(html.includes("webbplats_och_setup"), false);
+  assert.equal(html.includes("ai_receptionist"), false);
+  assert.equal(/offer-claim-contract|handoffens rekommendation/i.test(html), false);
+  assert.equal((html.match(/class="rt-preview-browser"/g) ?? []).length, 3);
+  assert.equal((html.match(/class="rt-preview-mobile"/g) ?? []).length, 3);
+});
+
 test("legacy recommendation can still show its pricing field", () => {
   const html = renderToStaticMarkup(createElement(Recommendation, {
     summary: "Sammanfattning",

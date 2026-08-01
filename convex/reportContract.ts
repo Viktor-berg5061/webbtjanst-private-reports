@@ -194,6 +194,79 @@ export type PersonalReportV2Content = {
 
 export type ReportContent = LegacyReportContent | PersonalReportV2Content;
 
+const DISPLAY_CLASSIFICATION_LABELS: Readonly<Record<string, string>> = {
+  verified_source: "Verifierad källa",
+  customer_stated: "Kunden uppgav",
+  estimate: "Uppskattning",
+  scenario: "Scenario",
+  unknown: "Ej verifierat i underlaget",
+  qualitative: "Kvalitativt underlag",
+};
+
+const DISPLAY_SERVICE_LABELS: Readonly<Record<string, string>> = {
+  webbplats_och_setup: "Webbplats och uppstart",
+  ai_receptionist: "AI-receptionist",
+  ai_receptionist_setup: "AI-receptionist och uppstart",
+  webbplats: "Webbplats",
+  webbunderhall: "Webbunderhåll",
+  webbunderhåll: "Webbunderhåll",
+  underhall: "Webbunderhåll",
+  underhåll: "Webbunderhåll",
+};
+
+const DISPLAY_VISUALIZATION_LABELS: Readonly<Record<string, string>> = {
+  comparison: "Jämförelse",
+  bar: "Fördelning",
+  journey: "Kundresa",
+  funnel: "Stegvis flöde",
+};
+
+const DISPLAY_LAYOUT_LABELS: Readonly<Record<string, string>> = {
+  split: "Delad vy",
+  stack: "Staplad vy",
+  feature_grid: "Funktionsöversikt",
+  editorial: "Redaktionell vy",
+};
+
+const INTERNAL_DISPLAY_REPLACEMENTS: readonly [RegExp, string][] = [
+  [/\boffer[-\s]claim[-\s]contract(?:en|et)?\b/gi, "den godkända tjänstebeskrivningen"],
+  [/\bhandoffens\s+rekommendation\b/gi, "rekommendationen i underlaget"],
+  [/\bpersonal_report_v2\b/gi, "den personliga analysen"],
+  [/\bverified_source\b/gi, "Verifierad källa"],
+  [/\bcustomer_stated\b/gi, "Kunden uppgav"],
+  [/\bestimate\b/gi, "Uppskattning"],
+  [/\bscenario\b/gi, "Scenario"],
+  [/\bunknown\b/gi, "Ej verifierat i underlaget"],
+  [/\bqualitative\b/gi, "Kvalitativt underlag"],
+];
+
+export function displayCopy(value: string): string {
+  return INTERNAL_DISPLAY_REPLACEMENTS.reduce((copy, [pattern, replacement]) => copy.replace(pattern, replacement), value);
+}
+
+export function displayClassificationLabel(classification: string): string {
+  return DISPLAY_CLASSIFICATION_LABELS[classification] ?? displayCopy(classification);
+}
+
+export function displayServiceName(service: string): string {
+  const normalized = service.trim().toLocaleLowerCase("sv");
+  const knownLabel = DISPLAY_SERVICE_LABELS[normalized];
+  if (knownLabel) return knownLabel;
+  if (/^[a-z0-9]+(?:[_-][a-z0-9]+)+$/i.test(normalized)) {
+    const readable = normalized.replace(/[_-]+/g, " ");
+    return readable.charAt(0).toLocaleUpperCase("sv") + readable.slice(1);
+  }
+  return displayCopy(service);
+}
+
+export function displayVisualizationLabel(type: string): string {
+  return DISPLAY_VISUALIZATION_LABELS[type] ?? displayCopy(type);
+}
+
+export function displayConceptLayoutLabel(layout: string): string {
+  return DISPLAY_LAYOUT_LABELS[layout] ?? displayCopy(layout);
+}
+
 export type ResolvedReport = {
   content: ReportContent;
   expiresAt?: number;

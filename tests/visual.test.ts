@@ -19,7 +19,7 @@ test("shared v2 contract is used by schema and HTTP publish validation", () => {
 test("both renderers expose semantic v2 blocks and native interactions", () => {
   for (const path of ["convex/reportRender.ts", "src/components/V2Report.tsx"]) {
     const source = read(path);
-    for (const piece of ["evidence", "visual", "journey", "concept", "offer", "details", "Scenario"]) {
+    for (const piece of ["evidence", "visual", "journey", "concept", "offer", "details", "displayClassificationLabel"]) {
       assert.ok(source.toLowerCase().includes(piece.toLowerCase()), `${path} missing ${piece}`);
     }
   }
@@ -51,5 +51,19 @@ test("security and legacy CSS hooks remain present", () => {
   }
   for (const selector of [".rt-hero", ".rt-evidence", ".rt-visualization", ".rt-journey", ".rt-concept", ".rt-offer", ".rt-footer"]) {
     assert.ok(css.includes(selector), `missing ${selector}`);
+  }
+});
+
+test("concept cards keep natural height and render complete web and mobile previews", () => {
+  const nextCss = read("src/app/globals.css");
+  const convexCss = read("convex/reportCss.ts");
+  assert.ok(nextCss.includes(".rt-concepts { align-items: start;"));
+  assert.ok(nextCss.includes(".rt-concept { align-self: start; display: block; height: fit-content;"));
+  assert.ok(convexCss.includes(".rt-concepts{align-items:start;align-content:start}"));
+  assert.ok(convexCss.includes(".rt-concept{align-self:start;display:block;height:fit-content;"));
+  for (const css of [nextCss, convexCss]) {
+    for (const selector of [".rt-preview-browser", ".rt-preview-mobile", ".rt-preview-sections", ".rt-preview-site"]) {
+      assert.ok(css.includes(selector), `missing ${selector}`);
+    }
   }
 });

@@ -34,6 +34,25 @@ test("v2 renderer exposes safe native interactions, flexible offer and evidence 
   assert.equal(/javascript:/i.test(html), false);
 });
 
+test("v2 display layer uses customer labels and a richer data-driven preview", () => {
+  const report = makeV2Report("plumbing");
+  report.currentSituation.summary = "unknown";
+  report.recommendedOffer.components[0].service = "webbplats_och_setup";
+  report.recommendedOffer.optionalAddOns[0].service = "ai_receptionist";
+  report.recommendedOffer.rationale = "Bygger på offer-claim-contracten och handoffens rekommendation.";
+
+  const html = renderReportHtml(report);
+  assert.ok(html.includes("Ej verifierat i underlaget"));
+  assert.ok(html.includes("Webbplats och uppstart"));
+  assert.ok(html.includes("AI-receptionist"));
+  assert.equal(html.includes("webbplats_och_setup"), false);
+  assert.equal(html.includes("ai_receptionist"), false);
+  assert.equal(/offer-claim-contract|handoffens rekommendation/i.test(html), false);
+  assert.equal((html.match(/class="rt-preview-browser"/g) ?? []).length, 3);
+  assert.equal((html.match(/class="rt-preview-mobile"/g) ?? []).length, 3);
+  assert.equal((html.match(/class="rt-preview-sections"/g) ?? []).length, 3);
+});
+
 test("legacy content remains renderable without fake concepts", () => {
   const html = renderReportHtml(legacyReport);
   assert.ok(html.includes("Äldre Kund AB"));
