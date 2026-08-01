@@ -12,16 +12,24 @@ test("two industries render different agent-provided concepts and content", () =
   assert.ok(bakery.includes("Månskensbageriet AB"));
   assert.ok(bakery.includes("Varmt kvarter"));
   assert.notEqual(plumbing, bakery);
-  assert.equal((plumbing.match(/<details class="rt-concept"/g) ?? []).length, 3);
-  assert.equal((bakery.match(/<details class="rt-concept"/g) ?? []).length, 3);
+  // After the interactive refactor, concept teasers are <a> links that open a fullscreen overlay via :target.
+  assert.equal((plumbing.match(/<a class="rt-concept"/g) ?? []).length, 3);
+  assert.equal((bakery.match(/<a class="rt-concept"/g) ?? []).length, 3);
+  // Each teaser also has a fullscreen sibling with id="cn-…".
+  // Count top-level concept fullscreen sections (not the inner #cn-X-tjanster/projekt/kontakt anchors).
+  assert.equal((plumbing.match(/class="rt-concept-full rt-concept-full--[^"]+"/g) ?? []).length, 3);
+  assert.equal((bakery.match(/class="rt-concept-full rt-concept-full--[^"]+"/g) ?? []).length, 3);
   assert.equal(plumbing.includes("CONCEPT_A"), false);
   assert.equal(plumbing.includes("420+"), false);
 });
 
 test("v2 renderer exposes safe native interactions, flexible offer and evidence labels", () => {
   const html = renderReportHtml(makeV2Report("plumbing"));
-  assert.ok(html.includes("<details class=\"rt-concept\""));
-  assert.ok(html.includes("<summary class=\"rt-concept-summary\">"));
+  assert.ok(html.includes('class="rt-concept"'));
+  assert.ok(html.includes('class="rt-concept-summary"'));
+  assert.ok(html.includes("rt-concept-fullstage"));
+  assert.ok(html.includes("rt-concept-full--"));
+  assert.ok(html.includes("rt-concept-open"));
   assert.ok(html.includes("Valfria"));
   assert.ok(html.includes("Alternativ"));
   assert.ok(html.includes("Uppskattning") || html.includes("Scenario"));

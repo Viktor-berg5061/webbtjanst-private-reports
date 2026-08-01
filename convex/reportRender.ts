@@ -32,6 +32,10 @@ function escapeHtml(value: string): string {
   })[character] ?? character);
 }
 
+function escapeId(value: string): string {
+  return String(value).replace(/[^A-Za-z0-9_-]/g, "");
+}
+
 function safeColor(value: unknown, fallback: string): string {
   return typeof value === "string" && HEX_COLOR.test(value) ? value : fallback;
 }
@@ -135,15 +139,44 @@ function renderConcept(concept: ConceptPreview, index: number): string {
   const onAccent = safeColor(concept.palette.onAccent, "#ffffff");
   const name = customerCopy(concept.name);
   const navigation = customerCopy(concept.mobile.navigation);
+  const targetId = `cn-${escapeId(concept.id)}`;
   const sections = concept.sections.map((section, sectionIndex) => `<article class="rt-preview-section"><span class="rt-preview-kicker">${String(sectionIndex + 1).padStart(2, "0")} · ${customerCopy(displayConceptLayoutLabel(section.layout))}</span><h5>${customerCopy(section.heading)}</h5><p>${customerCopy(section.body)}</p></article>`).join("");
   const proofs = concept.proofItems.map((proof) => `<div><strong>${customerCopy(proof.value)}</strong><span>${customerCopy(proof.label)}</span>${evidenceRefs(proof.evidenceIds)}</div>`).join("");
   const browserPreview = `<div class="rt-preview-browser" aria-label="Webbvy för ${name}"><div class="rt-preview-browser-bar"><span class="rt-preview-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="rt-preview-address">${navigation}</span></div><div class="rt-preview-site"><header class="rt-preview-nav"><strong>${name}</strong><span>${navigation}</span></header><div class="rt-preview-hero"><p class="rt-concept-eyebrow">${customerCopy(concept.hero.eyebrow)}</p><h4>${customerCopy(concept.hero.headline)}</h4><p>${customerCopy(concept.hero.subheadline)}</p><div class="rt-concept-actions"><span>${customerCopy(concept.hero.primaryCta)}</span><span>${customerCopy(concept.hero.secondaryCta)}</span></div></div><div class="rt-preview-sections">${sections}</div></div></div>`;
   const mobilePreview = `<div class="rt-preview-mobile" aria-label="Mobilvy för ${name}"><div class="rt-preview-mobile-bar"><span>${navigation}</span><span aria-hidden="true">☰</span></div><div class="rt-preview-mobile-screen"><p class="rt-concept-eyebrow">${customerCopy(concept.hero.eyebrow)}</p><h4>${customerCopy(concept.hero.headline)}</h4><p>${customerCopy(concept.hero.subheadline)}</p><span class="rt-preview-mobile-action">${customerCopy(concept.mobile.primaryAction)}</span>${concept.proofItems.slice(0, 2).map((proof) => `<div class="rt-preview-mobile-proof"><strong>${customerCopy(proof.value)}</strong><span>${customerCopy(proof.label)}</span></div>`).join("")}</div></div>`;
-  return `<details class="rt-concept" style="--rt-concept-bg:${background};--rt-concept-surface:${surface};--rt-concept-text:${text};--rt-concept-accent:${accent};--rt-concept-muted:${muted};--rt-concept-on-accent:${onAccent}"${index === 0 ? " open" : ""}><summary class="rt-concept-summary"><span class="rt-concept-tag">Koncept ${index + 1}</span><h3 class="rt-concept-name">${name}</h3><span class="rt-concept-direction">${customerCopy(concept.artDirection)}</span><p class="rt-concept-blurb">${customerCopy(concept.rationale)}</p></summary><div class="rt-concept-body"><div class="rt-concept-preview"><div class="rt-preview-devices">${browserPreview}${mobilePreview}</div><div class="rt-concept-proofs">${proofs}</div></div><div class="rt-concept-copy"><p><strong>Mobil:</strong> ${navigation} · ${customerCopy(concept.mobile.primaryAction)}</p>${concept.sections.map((section) => `<article><h4>${customerCopy(section.heading)}</h4><p>${customerCopy(section.body)}</p><span class="rt-badge">${customerCopy(displayConceptLayoutLabel(section.layout))}</span></article>`).join("")}<h4>Avvägningar</h4><ul>${concept.tradeoffs.map((tradeoff) => `<li>${customerCopy(tradeoff)}</li>`).join("")}</ul></div></div></details>`;
+  return `<a class="rt-concept" style="--rt-concept-bg:${background};--rt-concept-surface:${surface};--rt-concept-text:${text};--rt-concept-accent:${accent};--rt-concept-muted:${muted};--rt-concept-on-accent:${onAccent}" href="#${targetId}" aria-label="Öppna koncept ${index + 1} som hel sajt"><div class="rt-concept-summary"><span class="rt-concept-tag">Koncept ${index + 1}</span><h3 class="rt-concept-name">${name}</h3><span class="rt-concept-direction">${customerCopy(concept.artDirection)}</span><p class="rt-concept-blurb">${customerCopy(concept.rationale)}</p></div><div class="rt-concept-body"><div class="rt-concept-preview"><div class="rt-preview-devices">${browserPreview}${mobilePreview}</div><div class="rt-concept-proofs">${proofs}</div></div><div class="rt-concept-copy"><p><strong>Mobil:</strong> ${navigation} · ${customerCopy(concept.mobile.primaryAction)}</p>${concept.sections.map((section) => `<article><h4>${customerCopy(section.heading)}</h4><p>${customerCopy(section.body)}</p><span class="rt-badge">${customerCopy(displayConceptLayoutLabel(section.layout))}</span></article>`).join("")}<h4>Avvägningar</h4><ul>${concept.tradeoffs.map((tradeoff) => `<li>${customerCopy(tradeoff)}</li>`).join("")}</ul></div></div><span class="rt-concept-open">Öppna konceptet som hel sajt →</span></a>`;
+}
+
+/**
+ * Full interactive concept site, server-rendered for the Convex inline renderer.
+ * Hidden by default; the matching <a href="#cn-X"> inside renderConcept makes this
+ * section the :target, which expands to a fullscreen overlay via CSS. No JS, no
+ * new routes. The same data is reused — only the layout differs from the teaser.
+ */
+function renderConceptFullscreen(concept: ConceptPreview, index: number): string {
+  const targetId = `cn-${escapeId(concept.id)}`;
+  const accent = safeColor(concept.palette.accent, "#8c5a1e");
+  const onAccent = safeColor(concept.palette.onAccent, "#ffffff");
+  const bg = safeColor(concept.palette.background, "#f7f1e6");
+  const text = safeColor(concept.palette.text, "#2a261e");
+  const surface = safeColor(concept.palette.surface, "#ffffff");
+  const name = customerCopy(concept.name);
+  const nav = customerCopy(concept.mobile.navigation);
+  const phone = customerCopy((concept as { contactPhone?: { display: string } }).contactPhone?.display ?? concept.mobile.primaryAction);
+  const phoneHref = phone.replace(/[^0-9+]/g, "");
+  const heroEyebrow = customerCopy(concept.hero.eyebrow);
+  const heroHeadline = customerCopy(concept.hero.headline);
+  const heroSub = customerCopy(concept.hero.subheadline);
+  const heroCta = customerCopy(concept.hero.primaryCta);
+  const proofsHtml = concept.proofItems.map((proof) => `<div class="rt-concept-full-proof"><span class="rt-concept-full-proof-value" style="color:${accent}">${customerCopy(proof.value)}</span><span class="rt-concept-full-proof-label">${customerCopy(proof.label)}</span></div>`).join("");
+  const projectsHtml = concept.sections.map((section, i) => `<li class="rt-concept-full-project"><span class="rt-concept-full-project-num" style="color:${accent}">${String(i + 1).padStart(2, "0")}</span><span class="rt-concept-full-project-title">${customerCopy(section.heading)}</span><span class="rt-concept-full-project-tag" style="background:${accent};color:${onAccent}">${customerCopy(displayConceptLayoutLabel(section.layout))}</span></li>`).join("");
+  return `<section id="${targetId}" class="rt-concept-full rt-concept-full--${escapeId(concept.id)}" style="background:${bg};color:${text};--co-accent:${accent};--co-on-accent:${onAccent};--co-surface:${surface};--co-text:${text}"><header class="rt-concept-full-nav"><a class="rt-concept-full-back" href="#concepts" aria-label="Tillbaka till rapporten">← Tillbaka till rapporten</a><span class="rt-concept-full-brand"><span class="rt-concept-full-mark" style="background:${accent};color:${onAccent}" aria-hidden="true">${name.charAt(0).toUpperCase()}</span><span>${name}</span></span><nav class="rt-concept-full-links" aria-label="Konceptnavigering"><a href="#${targetId}-tjanster">Tjänster</a><a href="#${targetId}-projekt">Projekt</a><a href="#${targetId}-kontakt">Kontakt</a></nav></header><section class="rt-concept-full-hero"><p class="rt-concept-full-eyebrow" style="color:${accent}">${heroEyebrow}</p><h1 class="rt-concept-full-title">${heroHeadline}</h1><p class="rt-concept-full-sub">${heroSub}</p><a class="rt-concept-full-cta" href="#${targetId}-kontakt" style="background:${accent};color:${onAccent}">${heroCta}</a></section><section class="rt-concept-full-proofs" id="${targetId}-tjanster"><div class="rt-concept-full-proofs-grid">${proofsHtml}</div></section><section class="rt-concept-full-projects" id="${targetId}-projekt"><h2 class="rt-concept-full-h2">Utvalda projekt</h2><ul class="rt-concept-full-project-list">${projectsHtml}</ul></section><footer class="rt-concept-full-footer" id="${targetId}-kontakt"><p class="rt-concept-full-footer-tag">${nav}</p><a class="rt-concept-full-footer-phone" href="${phoneHref ? "tel:" + phoneHref : "#"}">${phone}</a></footer></section>`;
 }
 
 function renderConcepts(content: PersonalReportV2Content): string {
-  return `<section class="rt-section" aria-labelledby="rt-concepts"><header class="rt-section-head"><div><p class="rt-section-eyebrow">Koncept</p><h2 class="rt-section-title" id="rt-concepts">Tre öppningsbara riktningar</h2></div><p class="rt-section-aside">Strukturerade förslag från analysagenten.</p></header><div class="rt-concepts">${content.conceptPreviews.map(renderConcept).join("")}</div></section>`;
+  const teasers = content.conceptPreviews.map(renderConcept).join("");
+  const fullscreens = content.conceptPreviews.map(renderConceptFullscreen).join("");
+  return `<section class="rt-section" aria-labelledby="rt-concepts"><header class="rt-section-head" id="concepts"><div><p class="rt-section-eyebrow">Koncept</p><h2 class="rt-section-title" id="rt-concepts">Tre öppningsbara riktningar</h2></div><p class="rt-section-aside">Tryck på en ruta för att öppna konceptet som hel, scrollbar sajt.</p></header><div class="rt-concepts">${teasers}</div><div class="rt-concept-fullstage">${fullscreens}</div></section>`;
 }
 
 function renderPrice(price: OfferPrice | null): string {
